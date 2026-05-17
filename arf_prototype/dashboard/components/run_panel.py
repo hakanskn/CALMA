@@ -104,7 +104,6 @@ def build_run_panel():
             value="",
             language="yaml",
             label="method_params (YAML override — boş bırakılırsa default)",
-            lines=8,
         )
         with gr.Row():
             start_btn = gr.Button("🚀 Run Başlat", variant="primary")

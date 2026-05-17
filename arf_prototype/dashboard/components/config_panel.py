@@ -41,7 +41,7 @@ def build_config_panel():
     with gr.Column():
         gr.Markdown("### ⚙ Config Düzenle")
         path_dd = gr.Dropdown(choices=_config_paths(), label="Config dosyası")
-        editor = gr.Code(language="yaml", lines=25, label="YAML içerik")
+        editor = gr.Code(language="yaml", label="YAML içerik")
         with gr.Row():
             load_btn = gr.Button("📂 Yükle")
             save_btn = gr.Button("💾 Kaydet", variant="primary")

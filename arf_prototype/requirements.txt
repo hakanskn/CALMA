@@ -21,7 +21,7 @@ seaborn==0.13.2
 plotly==5.22.0
 
 # Dashboard
-gradio==4.31.0
+gradio>=5.9.0
 
 # Storage
 sqlalchemy==2.0.30
