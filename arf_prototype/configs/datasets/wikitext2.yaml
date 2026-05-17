@@ -1,0 +1,14 @@
+name: wikitext2
+hf_id: wikitext
+hf_config: wikitext-2-raw-v1
+split_ratios:
+  train: 0.8
+  val: 0.1
+  test: 0.1
+max_seq_len: 512
+batch_size: 16
+num_workers: 2
+tokenizer: gpt2
+streaming: false
+domain: general
+text_column: text

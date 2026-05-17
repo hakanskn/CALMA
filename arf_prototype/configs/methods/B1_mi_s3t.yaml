@@ -1,0 +1,20 @@
+method: B1_MI_S3T
+description: "Meta-Initialized Self-Supervised TTT — MAML + masked LM inner loop"
+
+model_name: gpt2
+learning_rate: 5.0e-5
+batch_size: 16
+num_epochs: 3
+num_seeds: 5
+checkpoint_every_n_steps: 500
+
+method_params:
+  mi_inner_lr: 1.0e-4
+  mi_inner_steps: 5
+  mi_outer_lr: 5.0e-5
+  mi_mask_ratio: 0.15
+  mi_use_fomaml: true
+  mi_episode_size: 8
+  mi_adapt_at_eval: true             # inference'da adapt et
+
+expected_extra_params: 0             # ek parametre yok — sadece trainer'a katman ekler

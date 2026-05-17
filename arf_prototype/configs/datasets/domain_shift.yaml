@@ -1,0 +1,57 @@
+# Domain shift veri setleri — Yön B yöntemleri için
+# Her kayıt ayrı bir DataModule ile yüklenir; train≠eval olabilir
+
+finance:
+  name: finance
+  hf_id: financial_phrasebank
+  hf_config: sentences_allagree
+  text_column: sentence
+  max_seq_len: 256
+  batch_size: 16
+  domain: finance
+
+medical:
+  name: medical
+  hf_id: pubmed_qa
+  hf_config: pqa_artificial
+  text_column: question
+  max_seq_len: 256
+  batch_size: 16
+  domain: medical
+
+legal:
+  name: legal
+  hf_id: pile-of-law/pile-of-law
+  hf_config: courtListener_opinions
+  text_column: text
+  max_seq_len: 512
+  batch_size: 8
+  domain: legal
+
+science:
+  name: science
+  hf_id: scientific_papers
+  hf_config: arxiv
+  text_column: article
+  max_seq_len: 512
+  batch_size: 8
+  domain: science
+
+news:
+  name: news
+  hf_id: cc_news
+  hf_config: default
+  text_column: text
+  max_seq_len: 512
+  batch_size: 16
+  domain: news
+
+code:
+  name: code
+  hf_id: codeparrot/github-code
+  hf_config: all-all
+  text_column: code
+  max_seq_len: 512
+  batch_size: 8
+  domain: code
+  streaming: true                  # büyük dataset

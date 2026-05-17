@@ -1,0 +1,18 @@
+method: A2_LI_SCR
+description: "Lateral Inhibition Sparse Router — Wilson-Cowan + Hebbian"
+
+model_name: gpt2
+learning_rate: 5.0e-5
+batch_size: 16
+num_epochs: 3
+num_seeds: 5
+checkpoint_every_n_steps: 500
+
+method_params:
+  li_lambda: 0.5
+  li_num_iters: 3
+  li_hebbian_lr: 0.01
+  li_weight_decay: 0.001
+  li_min_activation: 0.01
+
+expected_extra_params: 589824       # ek W_inhib matrisi 768x768

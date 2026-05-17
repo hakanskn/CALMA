@@ -1,0 +1,14 @@
+name: wikitext103
+hf_id: wikitext
+hf_config: wikitext-103-raw-v1
+split_ratios:
+  train: 0.9
+  val: 0.05
+  test: 0.05
+max_seq_len: 512
+batch_size: 16
+num_workers: 2
+tokenizer: gpt2
+streaming: false
+domain: general
+text_column: text

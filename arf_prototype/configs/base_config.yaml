@@ -1,0 +1,43 @@
+# ─────────────────────────────────────────────────────────────
+# ARF Base Config — tüm yöntemlerin türettiği temel parametreler
+# Bir method config bu dosyayı override eder.
+# ─────────────────────────────────────────────────────────────
+
+# ── Model ──────────────────────────────────────────────
+model_name: gpt2                    # gpt2 | gpt2-medium | gpt2-large
+model_hidden_size: 768
+model_num_heads: 12
+model_num_layers: 12
+
+# ── Eğitim ──────────────────────────────────────────────
+learning_rate: 5.0e-5
+batch_size: 16
+num_epochs: 3
+warmup_steps: 100
+grad_clip: 1.0
+weight_decay: 0.01
+
+# ── Seed ────────────────────────────────────────────────
+num_seeds: 5                        # 1-5 arası
+seeds: [42, 123, 456, 789, 1024]
+seed: 42                            # tekil run için aktif seed
+
+# ── Checkpoint ──────────────────────────────────────────
+checkpoint_every_n_steps: 500
+keep_last_n_checkpoints: 3
+resume_from_latest: true
+
+# ── Kayıt ───────────────────────────────────────────────
+log_every_n_steps: 50
+drive_base: /content/drive/MyDrive/arf_results
+
+# ── Dataset ─────────────────────────────────────────────
+train_dataset: wikitext2
+eval_dataset: wikitext2             # domain shift için farklı set
+max_seq_len: 512
+limit_train_batches: null           # null = tam veri; debug için sayı verilebilir
+limit_eval_batches: null
+
+# ── Method ──────────────────────────────────────────────
+method: baseline                    # bu base_config; method config override eder
+method_params: {}

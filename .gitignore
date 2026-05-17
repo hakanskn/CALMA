@@ -1,0 +1,30 @@
+# Üst düzey CALMA repo .gitignore — alt arf_prototype/.gitignore ayrıca aktif
+
+# Geçici dosyalar
+*.tmp
+*.bak
+*~
+_*.txt
+_*.md
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Office geçici
+~$*.docx
+~$*.xlsx
+~$*.pptx
+
+# Local environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/

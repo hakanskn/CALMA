@@ -1,0 +1,18 @@
+method: A1_PCR
+description: "Predictive Coding Router — score = 1/prediction_error"
+
+model_name: gpt2
+learning_rate: 5.0e-5
+batch_size: 16
+num_epochs: 3
+num_seeds: 5
+checkpoint_every_n_steps: 500
+
+method_params:
+  pcr_predictor_dim: 256
+  pcr_predictor_layers: 2
+  pcr_delta: 1.0e-6
+  pcr_temperature: 1.0
+  pcr_update_every: 1
+
+expected_extra_params: 394752       # predictor MLP param sayısı

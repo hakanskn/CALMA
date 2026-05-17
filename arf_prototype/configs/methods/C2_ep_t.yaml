@@ -1,0 +1,19 @@
+method: C2_EP_T
+description: "Equilibrium Propagation Transformer — free + clamped phase, backprop-free"
+
+model_name: gpt2
+learning_rate: 5.0e-5
+batch_size: 8                        # bellek nedeniyle düşük
+num_epochs: 3
+num_seeds: 5
+checkpoint_every_n_steps: 500
+
+method_params:
+  ep_nudge_beta: 0.05
+  ep_free_iters: 10
+  ep_clamped_iters: 4
+  ep_energy_lr: 0.01
+  ep_ss_target: masked_lm            # self-supervised hedef tipi
+  ep_use_simplified: true            # tam iteratif EP yerine yaklaşım
+
+expected_extra_params: 0

@@ -1,0 +1,13 @@
+method: baseline
+description: "GPT-2 Small standart scaled dot-product attention — referans."
+
+learning_rate: 5.0e-5
+batch_size: 16
+num_epochs: 3
+num_seeds: 5
+
+method_params:
+  attention_dropout: 0.1
+  residual_dropout: 0.1
+
+expected_extra_params: 0

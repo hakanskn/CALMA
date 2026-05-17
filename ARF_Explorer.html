@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attention Replacement Framework — 9 Aday Yöntem</title>
+<style>
+:root {
+  --bg: #f8fafc; --bg2: #f1f5f9; --bg3: #e2e8f0;
+  --card: #ffffff; --border: #e2e8f0; --border2: #cbd5e1;
+  --text: #0f172a; --text2: #475569; --text3: #94a3b8;
+  --mono: 'Courier New', monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --rad: 10px; --rad2: 6px;
+  --cA: #3b82f6; --cB: #10b981; --cC: #8b5cf6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; }
+
+/* ── HEADER ── */
+#hdr { background: var(--card); border-bottom: 1px solid var(--border); padding: 18px 32px; }
+#hdr h1 { font-size: 20px; font-weight: 600; color: var(--text); }
+#hdr p { font-size: 13px; color: var(--text2); margin-top: 3px; }
+
+/* ── DIRECTION CARDS ── */
+#dirs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; padding: 20px 32px; }
+.dir-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--rad); padding: 18px 20px; border-top: 4px solid var(--dc); }
+.dir-card .dc-label { font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--dc); text-transform: uppercase; margin-bottom: 6px; }
+.dir-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+.dir-card p { font-size: 13px; color: var(--text2); line-height: 1.65; }
+.dir-card .methods-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.dir-card .ml { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--bg2); border: 1px solid var(--border); color: var(--text2); }
+
+/* ── MAIN LAYOUT ── */
+#layout { display: flex; gap: 0; padding: 0 32px 32px; height: calc(100vh - 340px); min-height: 500px; }
+#sidebar { width: 210px; min-width: 210px; background: var(--card); border: 1px solid var(--border); border-radius: var(--rad); overflow-y: auto; flex-shrink: 0; }
+.dir-grp { padding: 10px 0 4px; }
+.dir-grp-lbl { font-size: 10px; font-weight: 600; letter-spacing: .07em; color: var(--text3); padding: 0 12px 4px; text-transform: uppercase; }
+.mb { display: block; width: 100%; text-align: left; background: none; border: none; border-left: 3px solid transparent; padding: 7px 12px; cursor: pointer; transition: background .12s; }
+.mb:hover { background: var(--bg2); }
+.mb.active { background: var(--bg2); border-left-color: var(--mc); }
+.mb .mc { font-size: 11px; font-weight: 600; color: var(--mc); }
+.mb .mn { font-size: 12px; color: var(--text); margin-top: 1px; }
+.mb .ms { font-size: 11px; color: var(--text3); }
+
+/* ── CONTENT PANEL ── */
+#panel { flex: 1; margin-left: 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--rad); display: flex; flex-direction: column; overflow: hidden; }
+#phdr { padding: 16px 20px 0; border-bottom: 1px solid var(--border); }
+#phdr h2 { font-size: 17px; font-weight: 600; color: var(--text); }
+#phdr .sub { font-size: 13px; color: var(--text2); margin-top: 3px; margin-bottom: 12px; }
+.tabs { display: flex; gap: 0; }
+.tab { font-size: 13px; padding: 8px 16px; border: none; background: none; cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent; font-family: var(--sans); transition: color .1s; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--text); border-bottom-color: var(--mc, #3b82f6); font-weight: 500; }
+
+/* ── TAB CONTENT ── */
+#tcontent { flex: 1; overflow-y: auto; padding: 18px 20px; }
+
+.ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.ov-card { background: var(--bg2); border-radius: var(--rad2); padding: 12px 14px; }
+.ov-card h4 { font-size: 10px; font-weight: 600; letter-spacing: .06em; color: var(--text3); text-transform: uppercase; margin-bottom: 5px; }
+.ov-card p { font-size: 13px; color: var(--text); line-height: 1.55; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.chip { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); }
+
+.fblock { background: var(--bg2); border-radius: var(--rad2); padding: 12px 14px; margin-bottom: 10px; border-left: 3px solid var(--mc, #3b82f6); }
+.fblock h4 { font-size: 11px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+.fblock pre { font-family: var(--mono); font-size: 12px; color: var(--text); white-space: pre; line-height: 1.7; overflow-x: auto; }
+.fblock .fd { font-size: 12px; color: var(--text3); margin-top: 6px; line-height: 1.5; }
+
+.pcard { border: 1px solid var(--border); border-radius: var(--rad2); padding: 12px 14px; margin-bottom: 8px; }
+.pcard h4 { font-size: 13px; font-weight: 600; color: var(--text); }
+.pcard .pmeta { font-size: 12px; color: var(--text2); margin-top: 3px; }
+.pcard .pwhy { font-size: 12px; color: var(--text3); margin-top: 5px; line-height: 1.5; }
+
+#sim-wrap canvas { border-radius: var(--rad2); display: block; width: 100%; }
+.sim-ctrl { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 12px; color: var(--text2); }
+.sim-ctrl button { font-size: 12px; padding: 5px 12px; border: 1px solid var(--border2); border-radius: var(--rad2); background: var(--bg2); cursor: pointer; color: var(--text); font-family: var(--sans); }
+.sim-ctrl button:hover { background: var(--bg3); }
+.sim-hint { font-size: 12px; color: var(--text3); flex: 1; }
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <h1>Attention Replacement Framework — 9 Aday Yöntem</h1>
+  <p>Thesis Note 16 &middot; Yön A (Mimari) &middot; Yön B (Öğrenme) &middot; Yön C (Unified) &middot; Her yöntem için: genel bakış, formüller, simülasyon, makaleler</p>
+</div>
+
+<div id="dirs">
+  <div class="dir-card" style="--dc:#3b82f6">
+    <div class="dc-label">Yön A — Mimari</div>
+    <h3>Attention Mekanizmasını Değiştirme</h3>
+    <p>Transformer mimarisinin çekirdeğindeki attention mekanizması, bilgiyi "benzerlik" temelinde yönlendirir. Yön A bu mekanizmayı kökten değiştirmeyi hedefler: benzerlik skoru (Q·K) yerine biyolojik ilham alınmış üç farklı routing sinyali önerilir. Bu değişiklik modelin nasıl işlem yaptığını — ağırlık güncellemesini değil — etkiler. Üç adayın ortak kısıtı aynıdır: yeni veri veya etiket gerektirmez, mevcut modele uygulanabilir.</p>
+    <div class="methods-list">
+      <span class="ml">A1 — PCR</span><span class="ml">A2 — LI-SCR</span><span class="ml">A3 — RBR</span>
+    </div>
+  </div>
+  <div class="dir-card" style="--dc:#10b981">
+    <div class="dc-label">Yön B — Öğrenme Paradigması</div>
+    <h3>Etiketsiz Inference-Time Adaptasyon</h3>
+    <p>Yön B mimariyi değiştirmez — modelin deploy edildikten sonra nasıl öğrendiğini değiştirir. Temel problem şudur: eğitilmiş bir model yeni bir domain veya kullanıcıyla karşılaştığında hiç etiket olmadan adapte olabilir mi? Senaryo 3 olan meta-öğrenme paradigmasına odaklanılmıştır: model, "öğrenmeyi öğrenir" — yani az adımda, self-supervised sinyal kullanarak yeni bağlamlara uyum sağlar. Inference sırasında birkaç gradient adımı kabul edilebilir maliyet olarak değerlendirilmiştir.</p>
+    <div class="methods-list">
+      <span class="ml">B1 — MI-S3T</span><span class="ml">B2 — CMA</span><span class="ml">B3 — FWML</span>
+    </div>
+  </div>
+  <div class="dir-card" style="--dc:#8b5cf6">
+    <div class="dc-label">Yön C — Unified Framework</div>
+    <h3>Mimari + Öğrenme Birleşimi</h3>
+    <p>Yön A ve Yön B'nin ortak bir noktası vardır: her ikisi de aynı sinyali — tahmin hatasını — kullanır ve aynı kısıtlara tabidir. Yön C bu ortaklığı bir adım öteye taşır: routing kararı ve öğrenme kararı aynı matematiksel çerçevede, tek bir sinyal tarafından yönetilebilir mi? Bu yönde üç aday, backpropagation'ı tamamen ortadan kaldırmayı ve tek bir forward pass içinde hem bilgiyi yönlendirmeyi hem de ağırlıkları güncellemeyi hedefler. En yüksek risk ama en yüksek özgün katkı potansiyeline sahip yön budur.</p>
+    <div class="methods-list">
+      <span class="ml">C1 — PCUN</span><span class="ml">C2 — EP-T</span><span class="ml">C3 — CHA</span>
+    </div>
+  </div>
+</div>
+
+<div id="layout">
+  <div id="sidebar">
+    <div class="dir-grp">
+      <div class="dir-grp-lbl" style="color:#3b82f6">Yön A — Mimari</div>
+      <button class="mb active" style="--mc:#3b82f6" data-id="A1" onclick="sel('A1')">
+        <div class="mc">A1 — PCR</div><div class="mn">Predictive Coding Routing</div>
+      </button>
+      <button class="mb" style="--mc:#06b6d4" data-id="A2" onclick="sel('A2')">
+        <div class="mc">A2 — LI-SCR</div><div class="mn">Lateral Inhibition</div>
+      </button>
+      <button class="mb" style="--mc:#7c3aed" data-id="A3" onclick="sel('A3')">
+        <div class="mc">A3 — RBR</div><div class="mn">Resonance-Based Routing</div>
+      </button>
+    </div>
+    <div class="dir-grp" style="border-top:1px solid #e2e8f0">
+      <div class="dir-grp-lbl" style="color:#10b981">Yön B — Öğrenme</div>
+      <button class="mb" style="--mc:#10b981" data-id="B1" onclick="sel('B1')">
+        <div class="mc">B1 — MI-S3T</div><div class="mn">Meta-Init TTT</div>
+      </button>
+      <button class="mb" style="--mc:#14b8a6" data-id="B2" onclick="sel('B2')">
+        <div class="mc">B2 — CMA</div><div class="mn">Contrastive Meta-Adapt.</div>
+      </button>
+      <button class="mb" style="--mc:#f59e0b" data-id="B3" onclick="sel('B3')">
+        <div class="mc">B3 — FWML</div><div class="mn">Fast Weight Meta-Learn.</div>
+      </button>
+    </div>
+    <div class="dir-grp" style="border-top:1px solid #e2e8f0">
+      <div class="dir-grp-lbl" style="color:#8b5cf6">Yön C — Unified</div>
+      <button class="mb" style="--mc:#6366f1" data-id="C1" onclick="sel('C1')">
+        <div class="mc">C1 — PCUN</div><div class="mn">Predictive Coding Unified</div>
+      </button>
+      <button class="mb" style="--mc:#ec4899" data-id="C2" onclick="sel('C2')">
+        <div class="mc">C2 — EP-T</div><div class="mn">Equilibrium Propagation</div>
+      </button>
+      <button class="mb" style="--mc:#f97316" data-id="C3" onclick="sel('C3')">
+        <div class="mc">C3 — CHA</div><div class="mn">Contrastive Hebbian Attn.</div>
+      </button>
+    </div>
+  </div>
+
+  <div id="panel">
+    <div id="phdr">
+      <h2 id="pname"></h2>
+      <div class="sub" id="pdesc"></div>
+      <div class="tabs">
+        <button class="tab active" onclick="setTab('ov')">Genel Bakış</button>
+        <button class="tab" onclick="setTab('fm')">Formüller</button>
+        <button class="tab" onclick="setTab('sim')">Simülasyon</button>
+        <button class="tab" onclick="setTab('ref')">Makaleler</button>
+      </div>
+    </div>
+    <div id="tcontent"></div>
+  </div>
+</div>
+
+<script>
+const D = {
+A1:{name:"PCR — Predictive Coding Routing",color:"#3b82f6",
+desc:"Attention routing skorunu benzerlikten tahmin hatasına taşır. Yüksek hata = beklenmedik token = önemli.",
+what:"Attention 'bu token ne kadar benzer?' sorusunu sorar. PCR ise 'bu token ne kadar şaşırtıcı?' sorusunu sorar. Tahmin edilemeyen token bağlam için daha fazla bilgi taşıyor demektir.",
+signal:"Prediction error: ε(j|i) = ||x_j − f_θ(x_i)||²",
+diff:"Benzerlik tabanlı routing yerine belirsizlik azaltma tabanlı routing. Mutual information ile ilişkili — bilgi-teorik temel.",
+concepts:["Predictive Coding","Free Energy Principle","Prediction Error","Mutual Information","Uncertainty Reduction","Self-Supervised"],
+formulas:[
+{t:"Klasik Attention skoru",c:"score_ATT(i,j) = q_i · k_j / √d",d:"Benzerlik tabanlı — Q×K nokta çarpımı bölü boyut kökü."},
+{t:"PCR routing skoru",c:"score_PCR(i,j) = 1 / (ε(j|i) + δ)\nε(j|i) = ||x_j − f_θ(x_i)||²",d:"f_θ küçük bir predictor MLP. δ sayısal stabilite sabiti. Yüksek hata → düşük payda → yüksek skor."},
+{t:"Routing ağırlıkları ve çıktı",c:"α_ij = softmax_j( score_PCR(i,j) )\noutput_i = Σ_j α_ij · v_j",d:"Value (V) matrisi değişmez. Yalnızca routing skoru hesaplanma biçimi değişti."},
+],
+papers:[
+{t:"Predictive Coding in the Visual Cortex",a:"Rao & Ballard",y:"1999",v:"Nature Neuroscience",w:"Hiyerarşik tahmin yapısının kaynağı. Her katmanın üst katmanı tahmin etmesi, yalnızca hatanın yukarı iletilmesi fikri."},
+{t:"The Free-Energy Principle: A Unified Brain Theory?",a:"Friston, K.",y:"2010",v:"Nature Reviews Neuroscience",w:"PCR'ın matematiksel çatısı. Beyin serbest enerjiyi minimize ediyor — hem dikkat hem öğrenme bu minimizasyonun sonucu."},
+{t:"Predictive Coding Approximates Backpropagation",a:"Millidge et al.",y:"2022",v:"Neural Computation",w:"PC'nin backprop'a matematiksel eşdeğerliğini gösterdi — teorik güvence sağlıyor."},
+],sim:"pcr"},
+
+A2:{name:"LI-SCR — Lateral Inhibition Routing",color:"#06b6d4",
+desc:"Tokenlar rekabete girer. Güçlü tokenlar zayıfları bastırır. Yapısal seyreklik — gerçek bastırma.",
+what:"Beyin korteksinde komşu nöronlar birbirini bastırır. En güçlü sinyal öne çıkar. LI-SCR bu dinamiği token routing'e taşıyor: kazanan tokenlar az, bilgi akışı seyrek.",
+signal:"Aktivasyon rekabeti: Wilson-Cowan dinamiği",
+diff:"Softmax tüm tokenlara sıfır olmayan ağırlık verir — gerçek bastırma yok. LI-SCR bazı tokenlara sıfıra yakın ağırlık verir — O(n²)'den tasarruf.",
+concepts:["Lateral Inhibition","Wilson-Cowan Equations","Hebbian Learning","Sparse Coding","Winner-Take-All","Inhibition Matrix"],
+formulas:[
+{t:"Wilson-Cowan lateral inhibition",c:"τ·(dα_i/dt) = −α_i + ReLU(s_i − λ·Σ_j W_ij·α_j)",d:"λ inhibition şiddeti, W_ij inhibition matrisi. Güçlü tokenlar komşularını bastırır."},
+{t:"Hebbian güncelleme kuralı",c:"ΔW_ij = η·α_i·α_j − γ·W_ij",d:"Birlikte aktif tokenlar inhibition bağlantısını güçlendirir. γ weight decay. Etiket gerektirmez."},
+{t:"Softmax vs LI-SCR karşılaştırma",c:"Softmax: α_i = exp(s_i) / Σ exp(s_j)  [hepsi > 0]\nLI-SCR:  α_i = ReLU(s_i − λ·Σ W_ij·α_j) [sparse]",d:"LI-SCR gerçek sıfır üretebilir — bilgi akışı tamamen kesilebilir."},
+],
+papers:[
+{t:"Emergence of Simple-Cell Receptive Field Properties",a:"Olshausen & Field",y:"1996",v:"Nature",w:"Sparse coding ilkesinin temel kaynağı. Beyin az nöronla temsil eder — verimlilik hem biyolojik hem hesaplama açısından önemli."},
+{t:"Excitatory and Inhibitory Interactions in Neural Populations",a:"Wilson & Cowan",y:"1972",v:"Biophysical Journal",w:"LI-SCR'ın matematiksel temeli olan diferansiyel denklemler. Rekabetçi nöral dinamiği tanımlıyor."},
+{t:"On the Computational Power of Winner-Take-All",a:"Maass, W.",y:"2000",v:"Neural Computation",w:"WTA ağlarının teorik güçleri. LI-SCR'ın limit davranışı olan WTA için teorik zemin."},
+],sim:"li"},
+
+A3:{name:"RBR — Resonance-Based Routing",color:"#7c3aed",
+desc:"Token ile bellek bankası rezonansa giriyorsa bağlantı kurulur. Girmiyorsa yeni slot açılır. Catastrophic forgetting yok.",
+what:"Akort aleti: bir frekans rezonansa giriyorsa kabul edilir, girmiyorsa yeni nota kategorisi açılır. Token routing bu mantıkla çalışıyor — benzerlik değil uyum kararı.",
+signal:"Rezonans skoru ve vigilance eşiği θ",
+diff:"Attention benzerliğe göre routing yapar, sıfır vermez. RBR eşik altında bağlantıyı tamamen keser ve yeni bellek slotu açar — continual learning çözümü.",
+concepts:["Adaptive Resonance Theory","Vigilance Parameter","Resonance","Mismatch","Memory Slot","Catastrophic Forgetting","Stability-Plasticity Dilemma"],
+formulas:[
+{t:"Rezonans skoru",c:"resonance(i,j) = (e_i · m_j) / (||m_j|| + β)",d:"e_i token embedding, m_j bellek slotu vektörü. β sayısal stabilite sabiti."},
+{t:"Karar mekanizması",c:"max_j resonance ≥ θ  →  RESONANCE → bilgi ilet\nmax_j resonance < θ   →  MISMATCH  → yeni slot aç",d:"θ vigilance parametresi. Eşik altında bağlantı yok, yeni bellek slotu oluşturuluyor."},
+{t:"Routing ağırlıkları",c:"α_ij = resonance(i,j) · 𝟙[resonance ≥ θ] / Z\noutput_i = Σ_j α_ij · v_j",d:"Yalnızca eşiği geçen bağlantılar aktif. Gerçek sparse routing, catastrophic forgetting yok."},
+],
+papers:[
+{t:"How Does a Brain Build a Cognitive Code?",a:"Grossberg, S.",y:"1980",v:"Psychological Review",w:"ART teorisinin kaynağı. Stabilite-plastisite ikileminin rezonans/mismatch kararıyla çözümü."},
+{t:"A Massively Parallel Architecture for Self-Organizing Neural Pattern Recognition",a:"Carpenter & Grossberg",y:"1987",v:"Computer Vision, Graphics and Image Processing",w:"ART-1/2 formalizasyonu. Vigilance parametresinin tanımı ve matematiksel çerçeve."},
+],sim:"rbr"},
+
+B1:{name:"MI-S3T — Meta-Initialized Self-Supervised TTT",color:"#10b981",
+desc:"Model, self-supervised gradient adımlarına iyi yanıt verecek başlangıç noktasına meta-eğitimle yerleştirilir.",
+what:"GPS analogisi: şehrin merkezinden başlarsan her yere az adımda ulaşırsın. Meta-training bu başlangıç noktasını buluyor. Inference'da self-supervised gradient adımları bu noktadan atılıyor.",
+signal:"Self-supervised loss — masked token prediction",
+diff:"Klasik TTT hazırlıksız adapte oluyor. MI-S3T outer loop ile iyi başlangıç noktası garantisi veriyor. Her ikisi de etiketsiz.",
+concepts:["Meta-Learning","MAML","Inner Loop","Outer Loop","Test-Time Training","Episode","FOMAML","Reptile","Self-Supervised"],
+formulas:[
+{t:"Inner loop: inference adaptasyonu",c:"θ'_new = θ − α·∇_θ L_ss(θ, D_new)\nL_ss = −log P_θ(x_mask | x_visible)",d:"D_new yeni bağlam. L_ss masked token prediction. Etiket yok — verinin kendisi hedef."},
+{t:"Outer loop: meta-training",c:"θ* = argmin_θ Σ_τ L_ss(\n  θ − α·∇_θ L_ss(θ, D_τ^sup),\n  D_τ^query\n)",d:"τ görev/domain. İç parantez inner loop güncellemesi. Dış argmin outer loop optimizasyonu."},
+{t:"FOMAML ve Reptile (pratik)",c:"FOMAML: ∂L/∂θ ≈ ∂L/∂θ'  (∂θ'/∂θ ≈ I)\nReptile:  θ ← θ + ε·(θ'_τ − θ)",d:"İkinci dereceli türev yerine birinci dereceli yaklaşım. Hesaplama maliyeti çok düşük."},
+],
+papers:[
+{t:"Model-Agnostic Meta-Learning for Fast Adaptation",a:"Finn, Abbeel & Levine",y:"2017",v:"ICML",w:"MAML çatısı. Inner/outer loop ayrımı buradan. MI-S3T her iki döngüyü de etiketsiz yapıyor."},
+{t:"Test-Time Training with Self-Supervision",a:"Sun et al.",y:"2020",v:"ICML",w:"Inference sırasında self-supervised gradient adımı atmanın mümkün olduğunu gösterdi."},
+{t:"On First-Order Meta-Learning Algorithms (Reptile)",a:"Nichol & Schulman",y:"2018",v:"arXiv",w:"Reptile ve FOMAML — outer loop'u hesaplama açısından verimli hale getiriyor."},
+],sim:"maml"},
+
+B2:{name:"CMA — Contrastive Meta-Adaptation",color:"#14b8a6",
+desc:"Adaptasyon sinyali tahmin hatası değil kontrast. Aynı bağlamdaki metinler birbirine yakın, farklı bağlamdakiler uzak.",
+what:"Fotoğraf stüdyosu: makyajsız ve makyajlı fotoğraf arasındaki fark hem neyin öne çıktığını hem nasıl çekilmesi gerektiğini gösteriyor. Model aynı bağlamın iki augmentasyonunu birbirine yaklaştırarak adapte oluyor.",
+signal:"NT-Xent contrastive loss",
+diff:"B1 tahmin hatasını kullanır. CMA bağlam tutarlılığını kullanır. Az örnekten daha güçlü sinyal üretir.",
+concepts:["Contrastive Learning","NT-Xent Loss","BYOL","Augmentation","Domain Shift","Positive Pair","Negative Pair"],
+formulas:[
+{t:"NT-Xent contrastive loss",c:"L = −log[ exp(sim(z_i,z_j)/τ)\n         / Σ_{k≠i} exp(sim(z_i,z_k)/τ) ]",d:"z_i ve z_j aynı pasajın iki augmentasyonu (pozitif çift). τ temperature. Batch'teki diğer örnekler negatif."},
+{t:"Meta-training episode",c:"Support: D_τ^support ← self-supervised augmentation\nInner:   θ' = θ − α·∇_θ L_c(θ, D_support)\nOuter:   min_θ L_c(θ', D_query)",d:"Her episode bir domain. Etiket yok — augmentation çifti sinyal üretiyor."},
+{t:"NLP augmentation seçenekleri",c:"Token masking:    x → [MASK] bazı tokenlar\nDropout-based:   encoder dropout iki görünüm\nSentence order:  cümle sırası karıştırılır",d:"SimCSE ve ESimCSE bu stratejileri NLP için geliştirdi."},
+],
+papers:[
+{t:"A Simple Framework for Contrastive Learning (SimCLR)",a:"Chen et al.",y:"2020",v:"ICML",w:"NT-Xent loss ve contrastive framework. CMA bunu NLP meta-adaptation'a taşıyor."},
+{t:"Bootstrap Your Own Latent (BYOL)",a:"Grill et al.",y:"2020",v:"NeurIPS",w:"Negatif örnek gerektirmez — küçük batch senaryolarında NT-Xent alternatifi."},
+{t:"SimCSE: Simple Contrastive Sentence Embeddings",a:"Gao et al.",y:"2021",v:"EMNLP",w:"NLP için dropout-based contrastive learning. CMA'nın augmentation stratejisinin kaynağı."},
+],sim:"contrast"},
+
+B3:{name:"FWML — Fast Weight Meta-Learning",color:"#f59e0b",
+desc:"Ana model hiç değişmez. Üstüne hızla güncellenen fast weight katmanı eklenir. Oturum bitince sıfırlanır.",
+what:"Gözlük analogisi: gözü değiştirmiyorsun, önüne farklı cam takıyorsun. Ana model sabittir (gözler), fast weights bağlama özgüdür (cam). Oturum bitince cam çıkarılıyor.",
+signal:"Hebbian outer product veya delta rule",
+diff:"B1 ve B2 ana modeli günceller. FWML ana modele dokunmaz — en güvenli deployment, KVKK/GDPR uyumlu.",
+concepts:["Fast Weights","Slow Weights","Hebbian Outer Product","Delta Rule","LoRA","Session Memory","Test-Time Training"],
+formulas:[
+{t:"Fast weight yapısı",c:"h_t = W·x_t + A_t·x_t\nW:   slow weights (sabit, büyük)\nA_t: fast weights (dinamik, küçük)",d:"Ana model W hiç değişmez. A_t bağlama özgü bilgiyi taşır. Oturum başında A_0 = 0."},
+{t:"Hebbian outer product güncelleme",c:"A_t = A_{t-1} + η · v_{t-1} ⊗ k_{t-1}",d:"v ve k key-value çiftleri. Gradient yok, tamamen yerel kural. En hafif güncelleme seçeneği."},
+{t:"LoRA-rank fast weight (verimli)",c:"A_t = U_t · V_t^T   (r << d)\nA: d×d → 2·r·d parametreye düşer",d:"Büyük modellerde bellek tasarrufu. r rank değeri tipik olarak 4-64 arasında."},
+],
+papers:[
+{t:"Learning to Control Fast-Weight Memories",a:"Schmidhuber, J.",y:"1992",v:"Neural Computation",w:"Fast weight kavramının kaynağı. Slow/fast ayrımı — uzun vadeli bilgi vs anlık bağlam."},
+{t:"Transformers Learn In-Context by Gradient Descent",a:"von Oswald et al.",y:"2022",v:"ICML 2023",w:"Transformer in-context learning'i implicit gradient descent yapıyor — fast weights bunu explicit kılıyor."},
+{t:"Learning to (Learn at Test Time): TTT-Linear (Apple)",a:"Sun et al.",y:"2024",v:"arXiv",w:"Production'da test-time güncelleme. FWML meta-initialization ekleyerek bunu geliştiriyor."},
+],sim:"fastw"},
+
+C1:{name:"PCUN — Predictive Coding Unified Network",color:"#6366f1",
+desc:"Tahmin hatası hem routing kararını hem ağırlık güncellemesini aynı anda yönetir. Backprop yok, etiket yok.",
+what:"Hava tahmin merkezi: meteorolog aynı tahmin hatasıyla hem 'neye dikkat et' (routing) hem 'modeli güncelle' (learning) kararı veriyor. Aynı sinyal, iki görev, tek pass.",
+signal:"Prediction error ε_l — unified routing + learning",
+diff:"A1 yalnızca routing için kullanır. PCUN aynı sinyali hem routing hem learning için eş zamanlı kullanır. Backprop yok — yerel güncelleme kuralı.",
+concepts:["Free Energy Principle","Hierarchical Prediction","Prediction Error","Local Update Rule","Precision","Variational Free Energy","Unified Framework"],
+formulas:[
+{t:"Hiyerarşik tahmin hatası",c:"μ_l   = f_θl(x_{l+1})     ← üst katman tahmini\nε_l   = x_l − μ_l         ← tahmin hatası",d:"Her katman bir üst katmanı tahmin eder. ε_l tamamen yerel — yalnızca l ve l+1 bilgisi."},
+{t:"Routing + Learning (aynı sinyal)",c:"score(i,j) = 1/(||ε_j||+δ)  ← routing\nΔW_l = η·ε_l·(∂f_θl/∂W_l)  ← learning",d:"Backprop yok. Her ağırlık yalnızca kendi katmanının hatasıyla güncelleniyor."},
+{t:"Serbest enerji (matematiksel çatı)",c:"F = Σ_l [ ||ε_l||² / 2σ_l² + log σ_l ]",d:"F minimize edilince hem routing (dikkat dağılımı) hem learning (ağırlıklar) iyileşir. Tek objektif."},
+],
+papers:[
+{t:"Predictive Coding in the Visual Cortex",a:"Rao & Ballard",y:"1999",v:"Nature Neuroscience",w:"Hiyerarşik PC yapısının kaynağı. PCUN'un mimari şablonu."},
+{t:"The Free-Energy Principle: A Unified Brain Theory?",a:"Friston, K.",y:"2010",v:"Nature Reviews Neuroscience",w:"Unified matematiksel çatı. Hem routing hem learning aynı F minimizasyonundan çıkıyor."},
+{t:"Predictive Coding Approximates Backpropagation",a:"Millidge et al.",y:"2022",v:"Neural Computation",w:"PC'nin backprop eşdeğerliği — PCUN'un yerel güncelleme kuralı için teorik güvence."},
+],sim:"pcun"},
+
+C2:{name:"EP-T — Equilibrium Propagation Transformer",color:"#ec4899",
+desc:"Transformer bir denge noktası arar. Self-supervised hedefle hafifçe itilir. İki faz farkı hem routing hem learning sinyali.",
+what:"Asma köprü: rüzgar ve yük altında bükülür, geri döner. Bu bükülme hem zayıf noktaları (routing) hem güçlendirme ihtiyacını (learning) gösteriyor. Backprop gerekmez — teorik olarak kanıtlanmış eşdeğerlik.",
+signal:"Enerji farkı ΔE (serbest faz vs kenetlenmiş faz)",
+diff:"Backpropagation ile matematiksel olarak eşdeğer ama hiç backprop çalıştırmıyor. İki forward pass yeterli.",
+concepts:["Energy Function","Equilibrium","Fixed Point","Free Phase","Clamped Phase","Nudge (β)","Hopfield Network","Credit Assignment"],
+formulas:[
+{t:"Enerji fonksiyonu",c:"E(s;x,θ) = Σ_l ||s_l − f_θ(s_{l+1}, x)||²",d:"Aktivasyonların katmanlar arası tutarsızlığını ölçer. Minimum enerji = denge noktası."},
+{t:"İki faz",c:"Serbest:    s*  = argmin_s E(s; x, θ)\nKenetlenmiş:s** = argmin_s [E + β·||s_L − y||²]",d:"y self-supervised hedef (masked token). β nudge kuvveti — küçük tutulmalı."},
+{t:"Öğrenme — backprop eşdeğeri",c:"ΔW_l ≈ (1/β)·[∂E/∂W_l|_{s**} − ∂E/∂W_l|_{s*}]",d:"Scellier & Bengio 2017 ispatı: bu formül backprop gradientına eşdeğer. Etiket yok."},
+],
+papers:[
+{t:"Equilibrium Propagation: Bridging Energy-Based Models and Backpropagation",a:"Scellier & Bengio",y:"2017",v:"Frontiers in Computational Neuroscience",w:"EP'nin teorik temeli ve backprop eşdeğerliğinin ispatı. EP-T bu çerçeveyi transformer'a taşıyor."},
+{t:"Neural Networks and Physical Systems with Emergent Collective Abilities",a:"Hopfield, J.J.",y:"1982",v:"PNAS",w:"Enerji tabanlı sinir ağı kavramının kaynağı. Denge noktası = bellek fikri."},
+{t:"Equilibrium Propagation in Convolutional Networks",a:"Laborieux et al.",y:"2021",v:"Frontiers",w:"EP'yi CNN'e uyguladı. EP-T transformer uyarlaması için mühendislik referansı."},
+],sim:"ep"},
+
+C3:{name:"CHA — Contrastive Hebbian Attention",color:"#f97316",
+desc:"Serbest ve kenetlenmiş faz aktivasyonları arasındaki fark hem routing ağırlığını hem ağırlık güncellemesini belirler.",
+what:"Orkestra: önce notasız çal (serbest faz), sonra referans kayıtla çal (kenetlenmiş faz). İki performans farkı hem hangi enstrüman öne çıkmalı (routing) hem prova rehberi (learning) oluyor. Hinton'ın Forward-Forward algoritmasının attention versiyonu.",
+signal:"Contrastive Hebbian farkı Δ = h⁺·h⁺ − h⁻·h⁻",
+diff:"C2 enerji minimizasyonu yapar. CHA direkt aktivasyon farkını kullanır — daha basit implementasyon, aynı teorik güvence.",
+concepts:["Contrastive Hebbian Learning","Forward-Forward Algorithm","Free Phase","Clamped Phase","Anti-Hebbian","Positive Phase","Negative Phase"],
+formulas:[
+{t:"İki faz aktivasyonları",c:"Serbest faz:     {h_l^-}  ← model serbest çalışır\nKenetlenmiş faz:{h_l^+}  ← y hedefi uygulanır",d:"h^+ kenetlenmiş (ne olmalı?). h^- serbest (model ne düşünüyor?). y self-supervised hedef."},
+{t:"Contrastive Hebbian öğrenme kuralı",c:"ΔW_ij = η · (h_i^+ · h_j^+ − h_i^- · h_j^-)",d:"Tamamen yerel. Kenetlenmiş fazda birlikte aktifler güçlenir, serbest fazda zayıflar. Backprop yok."},
+{t:"Routing kararı — aynı sinyal",c:"Δ_ij   = h_i^+·h_j^+ − h_i^-·h_j^-\nα_ij   = softmax( ReLU(Δ_ij) )\noutput = Σ_j α_ij · v_j",d:"ΔW ve routing aynı contrastive farktan geliyor. Tek sinyal, iki görev — unified çerçeve."},
+],
+papers:[
+{t:"Contrastive Hebbian Learning in the Continuous Hopfield Model",a:"Movellan, J.R.",y:"1991",v:"Connectionist Models (Touretzky et al.)",w:"CHL'nin kaynağı. İki faz Hebbian kuralının backprop eşdeğerliği."},
+{t:"The Forward-Forward Algorithm: Preliminary Investigations",a:"Hinton, G.",y:"2022",v:"arXiv 2212.13345",w:"Backprop yerine iki forward pass. CHA bu fikri attention routing'e genişletiyor."},
+{t:"Equivalence of Backpropagation and CHL",a:"Xie & Seung",y:"2003",v:"Neural Computation",w:"CHL=backprop matematiksel ispatı. CHA'nın teorik güvencesi."},
+],sim:"cha"},
+};
+
+// ── STATE ──────────────────────────────────────────────────────
+let cur='A1', curTab='ov', animId=null;
+const W_SIM=560, H_SIM=260;
+
+function sel(id){
+  cur=id;
+  document.querySelectorAll('.mb').forEach(b=>b.classList.toggle('active',b.dataset.id===id));
+  const m=D[id];
+  document.getElementById('panel').style.setProperty('--mc',m.color);
+  document.getElementById('pname').textContent=m.name;
+  document.getElementById('pdesc').textContent=m.desc;
+  setTab(curTab);
+}
+
+function setTab(t){
+  curTab=t;
+  const labels={ov:'Genel Bakış',fm:'Formüller',sim:'Simülasyon',ref:'Makaleler'};
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.textContent===labels[t]));
+  const m=D[cur];
+  const c=document.getElementById('tcontent');
+  if(animId){cancelAnimationFrame(animId);animId=null;}
+  if(t==='ov') showOv(m,c);
+  else if(t==='fm') showFm(m,c);
+  else if(t==='sim') showSim(m,c);
+  else showRef(m,c);
+}
+
+function showOv(m,c){
+  c.innerHTML=`
+<div class="ov-grid">
+  <div class="ov-card"><h4>Ne yapıyor?</h4><p>${m.what}</p></div>
+  <div class="ov-card"><h4>Temel sinyal</h4><p style="font-family:var(--mono);font-size:12px;color:#0f172a">${m.signal}</p></div>
+  <div class="ov-card"><h4>Attention / Backprop'tan farkı</h4><p>${m.diff}</p></div>
+  <div class="ov-card"><h4>Kısıtlar</h4><p>Yeni veri yok · Etiketleme yok · Mevcut modele uygulanabilir</p></div>
+</div>
+<div class="chips">${m.concepts.map(cc=>`<span class="chip">${cc}</span>`).join('')}</div>`;
+}
+
+function showFm(m,c){
+  c.innerHTML=m.formulas.map(f=>`
+<div class="fblock">
+  <h4>${f.t}</h4>
+  <pre>${f.c}</pre>
+  <div class="fd">${f.d}</div>
+</div>`).join('');
+}
+
+function showRef(m,c){
+  c.innerHTML=m.papers.map(p=>`
+<div class="pcard">
+  <h4>${p.t}</h4>
+  <div class="pmeta">${p.a} &middot; ${p.y} &middot; <em>${p.v}</em></div>
+  <div class="pwhy">${p.w}</div>
+</div>`).join('');
+}
+
+function showSim(m,c){
+  c.innerHTML=`<div id="sim-wrap"><canvas id="sc" width="${W_SIM}" height="${H_SIM}"></canvas></div>
+<div class="sim-ctrl">
+  <span class="sim-hint" id="sh">${getSHint(m.sim)}</span>
+  <button onclick="resetSim()">&#8635; Yeniden</button>
+</div>`;
+  window._simType=m.sim;
+  startSim(m.sim);
+}
+
+function resetSim(){if(animId){cancelAnimationFrame(animId);animId=null;}startSim(window._simType);}
+function getSHint(t){return{
+pcr:"Yüksek tahmin hatası → düşük payda → yüksek routing skoru",
+li:"Güçlü tokenlar komşularını bastırır — sparse aktivasyon",
+rbr:"Yeşil = rezonans (bağlantı kuruldu) · Kırmızı = mismatch (yeni slot)",
+maml:"Dış halka outer loop (başlangıç noktası) · İç ok inner loop (adaptasyon)",
+contrast:"Aynı domain yaklaşır (yeşil) · Farklı domain uzaklaşır (kırmızı)",
+fastw:"Gri katmanlar ana model (sabit) · Renkli bloklar fast weights (büyüyor)",
+pcun:"Sol taraf routing · Sağ taraf learning · İkisi aynı ε_l sinyalinden",
+ep:"Top serbest dengesi bulur → itilir → kenetlenmiş denge → fark = ΔW",
+cha:"Turuncu (kenetlenmiş) − gri (serbest) = routing + learning sinyali"
+}[t]||"";}
+
+// ── SIMULATIONS ────────────────────────────────────────────────
+const WORDS=['the','cat','sat','on','mat','a'];
+const N=WORDS.length;
+const TX=(i,W)=>60+i*(W-120)/(N-1);
+const TY=H_SIM-45;
+
+function startSim(type){
+  const cv=document.getElementById('sc');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  let t=0;
+
+  const txt1=()=>'rgba(15,23,42,0.85)',txt2=()=>'rgba(71,85,105,0.7)',bg=()=>'#f8fafc';
+
+  if(type==='pcr'){
+    let errs=WORDS.map((_,i)=>0.1+0.8*Math.abs(Math.sin(i*1.3)));
+    let sel=2;
+    function draw(){
+      ctx.clearRect(0,0,W,H);ctx.fillStyle=bg();ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=txt2();ctx.font='11px sans-serif';ctx.textAlign='center';
+      ctx.fillText('PCR routing — skor = 1 / tahmin_hatası',W/2,16);
+      // error bars
+      for(let i=0;i<N;i++){
+        const x=TX(i,W),e=errs[i];
+        ctx.fillStyle=`rgba(239,68,68,${0.25+e*0.55})`;
+        ctx.fillRect(x-10,TY-70-e*50,20,e*50);
+        ctx.fillStyle=txt2();ctx.font='9px sans-serif';ctx.textAlign='center';
+        ctx.fillText(e.toFixed(1),x,TY-72-e*50);
+      }
+      // routing arrows from sel
+      const sx=TX(sel,W);
+      for(let i=0;i<N;i++){
+        if(i===sel)continue;
+        const tx2=TX(i,W),s=1/(errs[i]+0.1),norm=Math.min(s/8,1);
+        ctx.strokeStyle=`rgba(99,102,241,${0.15+norm*0.7})`;ctx.lineWidth=0.5+norm*3;
+        ctx.beginPath();ctx.moveTo(sx,TY-18);
+        ctx.quadraticCurveTo((sx+tx2)/2,TY-80,tx2,TY-18);ctx.stroke();
+      }
+      // tokens
+      for(let i=0;i<N;i++){
+        const x=TX(i,W),isQ=i===sel;
+        ctx.fillStyle=isQ?D.A1.color:'rgba(148,163,184,0.4)';
+        roundRect(ctx,x-20,TY-16,40,32,5);ctx.fill();
+        ctx.fillStyle=isQ?'#fff':txt1();ctx.font=`${isQ?'600':'400'} 12px sans-serif`;ctx.textAlign='center';
+        ctx.fillText(WORDS[i],x,TY+4);
+        if(!isQ){ctx.fillStyle=txt2();ctx.font='9px sans-serif';ctx.fillText('ε='+errs[i].toFixed(1),x,TY+20);}
+      }
+      ctx.fillStyle=txt2();ctx.font='10px sans-serif';ctx.textAlign='left';
+      ctx.fillText('sorgu token: "'+WORDS[sel]+'"',8,H-5);
+      t+=0.02;errs=errs.map((e,i)=>i===sel?e:0.1+0.8*Math.abs(Math.sin(t+i*1.3)));
+      animId=requestAnimationFrame(draw);
+    }draw();
+  }
+  else if(type==='li'){
+    let acts=WORDS.map(()=>0.3+Math.random()*0.6);
+    function draw(){
+      ctx.clearRect(0,0,W,H);ctx.fillStyle=bg();ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=txt2();ctx.font='11px sans-serif';ctx.textAlign='center';
+      ctx.fillText('LI-SCR — lateral inhibition: kazanan bastırır',W/2,16);
+      for(let i=0;i<N;i++)for(let j=0;j<N;j++){
+        if(Math.abs(i-j)===1){
+          ctx.strokeStyle=`rgba(239,68,68,${0.12*acts[i]*acts[j]})`;
+          ctx.lineWidth=acts[i]*acts[j]*2;ctx.setLineDash([3,3]);
+          ctx.beginPath();ctx.moveTo(TX(i,W),TY-16);ctx.lineTo(TX(j,W),TY-16);ctx.stroke();ctx.setLineDash([]);
+        }
+      }
+      for(let i=0;i<N;i++){
+        const x=TX(i,W),a=acts[i];
+        ctx.fillStyle=`rgba(6,182,212,${0.2+a*0.65})`;
+        ctx.fillRect(x-10,TY-72-a*50,20,a*50);
+        ctx.fillStyle=a>0.55?D.A2.color:'rgba(148,163,184,0.4)';
+        roundRect(ctx,x-20,TY-16,40,32,5);ctx.fill();
+        ctx.fillStyle=a>0.55?'#fff':txt1();ctx.font=`${a>0.55?'600':'400'} 12px sans-serif`;ctx.textAlign='center';
+        ctx.fillText(WORDS[i],x,TY+4);
+        ctx.fillStyle=txt2();ctx.font='9px sans-serif';ctx.fillText(a.toFixed(2),x,TY+20);
+      }
+      const na=acts.map((a,i)=>{
+        const inh=acts.reduce((s,aj,j)=>j!==i?s+aj*0.09:s,0);
+        const drv=0.25+0.55*Math.abs(Math.sin(t+i*0.85));
+        return Math.max(0.02,Math.min(1,a+0.05*(drv-inh-a)));
+      });
+      acts=na;t+=0.025;animId=requestAnimationFrame(draw);
+    }draw();
+  }
+  else if(type==='rbr'){
+    const MEM=['the','cat','X','on','Y'];
+    let matches=WORDS.map(()=>Math.random()>0.35),flip=0;
+    function draw(){
+      ctx.clearRect(0,0,W,H);ctx.fillStyle=bg();ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=txt2();ctx.font='11px sans-serif';ctx.textAlign='center';
+      ctx.fillText('RBR — rezonans / mismatch kararı',W/2,16);
+      ctx.strokeStyle='rgba(124,58,237,0.35)';ctx.lineWidth=0.5;ctx.setLineDash([4,4]);
+      ctx.strokeRect(28,26,W-56,44);ctx.setLineDash([]);
+      ctx.fillStyle=txt2();ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillText('Bellek bankası',32,23);
+      for(let i=0;i<5;i++){
+        const x=60+i*(W-120)/4;
+        ctx.fillStyle='rgba(124,58,237,0.18)';roundRect(ctx,x-18,32,36,24,4);ctx.fill();
+        ctx.fillStyle=txt1();ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText(MEM[i],x,47);
+      }
+      for(let i=0;i<N;i++){
+        const tx2=TX(i,W),ty=TY-16,mx=60+Math.min(i,4)*(W-120)/4;
+        const isR=matches[i];
+        ctx.strokeStyle=isR?'rgba(16,185,129,0.65)':'rgba(239,68,68,0.5)';
+        ctx.lineWidth=isR?1.8:1;ctx.setLineDash(isR?[]:[4,4]);
+        ctx.beginPath();ctx.moveTo(tx2,ty);ctx.lineTo(mx,56);ctx.stroke();ctx.setLineDash([]);
+        if(!isR){ctx.fillStyle='rgba(239,68,68,0.7)';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.fillText('new slot',tx2,TY-30);}
+        ctx.fillStyle=isR?'rgba(16,185,129,0.8)':'rgba(239,68,68,0.75)';
+        roundRect(ctx,tx2-20,ty,40,32,5);ctx.fill();
+        ctx.fillStyle='#fff';ctx.font='500 12px sans-serif';ctx.textAlign='center';ctx.fillText(WORDS[i],tx2,ty+16);
+      }
+      t+=0.03;flip++;if(flip>90){matches=WORDS.map(()=>Math.random()>0.35);flip=0;}
+      animId=requestAnimationFrame(draw);
+    }draw();
+  }
+  else if(type==='maml'){
+    const tasks=[{x:W*0.18,y:H*0.3},{x:W*0.78,y:H*0.28},{x:W*0.22,y:H*0.74},{x:W*0.76,y:H*0.72}];
+    let tX=W/2,tY=H/2;
+    function draw(){
+      ctx.clearRect(0,0,W,H);ctx.fillStyle=bg();ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=txt2();ctx.font='11px sans-serif';ctx.textAlign='center';
+      ctx.fillText('MI-S3T — outer loop başlangıç noktası → inner loop adaptasyon',W/2,16);
+      for(let r=80;r>10;r-=18){
+        ctx.strokeStyle=`rgba(16,185,129,${0.04+r/600})`;ctx.lineWidth=0.5;
+        tasks.forEach(tk=>{ctx.beginPath();ctx.arc(tk.x,tk.y,r,0,Math.PI*2);ctx.stroke();});
+      }
+      tasks.forEach((tk,i)=>{ctx.fillStyle=txt2();ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText('τ'+(i+1),tk.x,tk.y-86);});
+      tasks.forEach(tk=>{
+        ctx.strokeStyle='rgba(16,185,129,0.2)';ctx.lineWidth=0.8;ctx.setLineDash([3,3]);
+        ctx.beginPath();ctx.moveTo(tX,tY);ctx.lineTo(tk.x,tk.y);ctx.stroke();ctx.setLineDash([]);
+      });
+      // current inner loop
+      const cTask=tasks[Math.floor(t/3)%4];
+      const prog=(t%3)/3;
+      const ax=tX+(cTask.x-tX)*prog,ay=tY+(cTask.y-tY)*prog;
+      ctx.strokeStyle=D.B1.color;ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(tX,tY);ctx.lineTo(ax,ay);ctx.stroke();
+      ctx.fillStyle=D.B1.color;ctx.beginPath();ctx.arc(ax,ay,6,0,Math.PI*2);ctx.fill();
+      // theta star
+      ctx.fillStyle='rgba(255,255,255,0.9)';ctx.strokeStyle=D.B1.color;ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(tX,tY,12,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle=D.B1.color;ctx.font='600 10px sans-serif';ctx.textAlign='center';ctx.fillText('θ*',tX,tY+4);
+      ctx.fillStyle=txt2();ctx.font='10px sans-serif';ctx.textAlign='left';
+      ctx.fillText('inner loop aktif → τ'+(Math.floor(t/3)%4+1),8,H-5);
+      const cx=tasks.reduce((s,tk)=>s+tk.x,0)/4,cy=tasks.reduce((s,tk)=>s+tk.y,0)/4;
+      tX+=(cx-tX)*0.004;tY+=(cy-tY)*0.004;t+=0.025;animId=requestAnimationFrame(draw);
+    }draw();
+  }
+  else if(type==='contrast'){
+    const pts=WORDS.map((_,i)=>({x:80+Math.random()*(W-160),y:50+Math.random()*(H-100),vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,d:i<3?0:1}));
+    function draw(){
+      ctx.clearRect(0,0,W,H);ctx.fillStyle=bg();ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=txt2();ctx.font='11px sans-serif';ctx.textAlign='center';
+      ctx.fillText('CMA — aynı domain yaklaşır, farklı domain uzaklaşır',W/2,16);
+      for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+        const same=pts[i].d===pts[j].d;
+        const dx=pts[j].x-pts[i].x,dy=pts[j].y-pts[i].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<110){
+          ctx.strokeStyle=same?`rgba(16,185,129,${0.5-d/220})`:`rgba(239,68,68,${0.4-d/275})`;
+          ctx.lineWidth=same?1.5:0.8;ctx.setLineDash(same?[]:[3,3]);
+          ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke();ctx.setLineDash([]);
+        }
+      }
+      pts.forEach((p,i)=>{
+        ctx.fillStyle=p.d===0?D.B2.color:'rgba(124,58,237,0.8)';
+        ctx.beginPath();ctx.arc(p.x,p.y,14,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#fff';ctx.font='500 11px sans-serif';ctx.textAlign='center';ctx.fillText(WORDS[i],p.x,p.y+4);
+        pts.forEach((q,j)=>{if(i===j)return;const dx=q.x-p.x,dy=q.y-p.y,d=Math.max(18,Math.sqrt(dx*dx+dy*dy));const same=p.d===q.d;const f=(same?.013:-.009)/d;p.vx+=dx*f;p.vy+=dy*f;});
+        p.vx*=.96;p.vy*=.96;p.x+=p.vx;p.y+=p.vy;
+        p.x=Math.max(22,Math.min(W-22,p.x));p.y=Math.max(22,Math.min(H-22,p.y));
+      });
+      ctx.fillStyle='rgba(16,185,129,.8)';ctx.beginPath();ctx.arc(16,H-12,5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=txt2();ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillText('Domain A',25,H-8);
+      ctx.fillStyle='rgba(124,58,237,.8)';ctx.beginPath();ctx.arc(100,H-12,5,0,Math.PI*2);ctx.fill();
+      ctx.fillText('Domain B',109,H-8);
+      animId=requestAnimationFrame(draw);
+    }draw();
+  }
+  else if(type==='fastw'){
+    let fw=Array(N).fill(0);
+    const layers=['Embedding','Layer 1','Layer 2','Output'];
+    function draw(){
+      ctx.clearRect(0,0,W,H);ctx.fillStyle=bg();ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=txt2();ctx.font='11px sans-serif';ctx.textAlign='center';
+      ctx.fillText('FWML — ana model sabit, fast weights bağlamla büyür',W/2,16);
+      const curT=Math.floor(t)%N;
+      layers.forEach((l,i)=>{
+        const y=30+i*44;
+        ctx.fillStyle='rgba(148,163,184,0.1)';ctx.strokeStyle='rgba(148,163,184,0.4)';ctx.lineWidth=0.5;
+        roundRect(ctx,28,y,W-56,34,4);ctx.fill();ctx.stroke();
+        ctx.fillStyle=txt2();ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText(l,W/2,y+21);
+        if(i>0){
+          for(let ti=0;ti<=curT;ti++){
+            const fw_v=Math.min(1,fw[ti]+.05);
+            const bw=Math.min(22,fw_v*28);
+            const bx=28+(ti+.5)*(W-56)/N-bw/2;
+            ctx.fillStyle=`rgba(245,158,11,${0.12+fw_v*0.35})`;
+            roundRect(ctx,bx,y+4,bw,26,3);ctx.fill();
+          }
+        }
+      });
+      // token stream
+      for(let i=0;i<N;i++){
+        const x=TX(i,W),isA=i<=curT;
+        ctx.fillStyle=isA?D.B3.color:'rgba(148,163,184,0.3)';
+        roundRect(ctx,x-20,TY-16,40,32,5);ctx.fill();
+        ctx.fillStyle=isA?'#fff':txt1();ctx.font=`${isA?'600':'400'} 12px sans-serif`;ctx.textAlign='center';
+        ctx.fillText(WORDS[i],x,TY+4);
+      }
+      if(curT<N){ctx.strokeStyle=D.B3.color;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(TX(curT,W),TY-16);ctx.lineTo(TX(curT,W),206);ctx.stroke();}
+      fw=fw.map((v,i)=>i<=curT?Math.min(1,v+0.015):v);
+      ctx.fillStyle=txt2();ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillText(curT+'/'+N+' token işlendi',8,H-5);
+      t+=0.018;animId=requestAnimationFrame(draw);
+    }draw();
+  }
+  else if(type==='pcun'){
+    function draw(){
+      ctx.clearRect(0,0,W,H);ctx.fillStyle=bg();ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=txt2();ctx.font='11px sans-serif';ctx.textAlign='center';
+      ctx.fillText('PCUN — ε_l → routing (sol) VE learning (sağ) eş zamanlı',W/2,16);
+      const errs=WORDS.map((_,i)=>0.1+0.8*Math.abs(Math.sin(t+i*1.2)));
+      const mX=W/2;
+      // LEFT routing
+      ctx.fillStyle=txt2();ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText('Routing ağırlıkları',mX/2,34);
+      for(let i=0;i<N;i++){
+        const x=35+i*(mX-70)/(N-1),e=errs[i];
+        const s=1/(e+0.1),norm=Math.min(s/8,1);
+        ctx.strokeStyle=`rgba(99,102,241,${0.15+norm*0.7})`;ctx.lineWidth=0.5+norm*2.5;
+        ctx.beginPath();ctx.moveTo(mX/2,TY-22);ctx.quadraticCurveTo((mX/2+x)/2,TY-72,x,TY-22);ctx.stroke();
+        ctx.fillStyle=`rgba(99,102,241,${0.28+e*0.6})`;roundRect(ctx,x-18,TY-16,36,32,5);ctx.fill();
+        ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText(WORDS[i],x,TY+4);
+      }
+      // RIGHT learning
+      ctx.fillStyle=txt2();ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText('Weight updates (ΔW_l)',mX+mX/2,34);
+      ['L3','L2','L1'].forEach((l,li)=>{
+        const y=48+li*52;
+        for(let i=0;i<N;i++){
+          const e=errs[i];
+          const bw=6+e*22,bx=mX+14+i*((W-mX-24)/N)+2;
+          ctx.fillStyle=`rgba(99,102,241,${0.1+e*0.38})`;roundRect(ctx,bx,y,bw,38,3);ctx.fill();
+        }
+        ctx.fillStyle=txt2();ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillText(l,mX+4,y+23);
+      });
+      // center signal label
+      ctx.fillStyle='rgba(239,68,68,0.75)';ctx.font='600 11px sans-serif';ctx.textAlign='center';ctx.fillText('ε_l',mX,H/2+5);
+      ctx.strokeStyle='rgba(239,68,68,0.5)';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(mX,H/2-12);ctx.lineTo(mX-28,H/2-12);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(mX,H/2-12);ctx.lineTo(mX+28,H/2-12);ctx.stroke();
+      t+=0.018;animId=requestAnimationFrame(draw);
+    }draw();
+  }
+  else if(type==='ep'){
+    let bX=W/2,bY=H/2+30,phase='free',phaseT=0;
+    const fX=W/2,fY=H/2+75,cX=W/2+55,cY_fn=x=>{const nx=(x-W/2)/130;return H/2+75+nx*nx*55;};
+    const cY=cY_fn(cX);
+    function draw(){
+      ctx.clearRect(0,0,W,H);ctx.fillStyle=bg();ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=txt2();ctx.font='11px sans-serif';ctx.textAlign='center';
+      ctx.fillText('EP-T — serbest faz (s*) → kenetlenmiş faz (s**) → ΔW',W/2,16);
+      // bowl
+      ctx.strokeStyle='rgba(100,116,139,0.3)';ctx.lineWidth=1.2;ctx.beginPath();
+      for(let x=40;x<=W-40;x+=2){const nx=(x-W/2)/130,y=H/2+75+nx*nx*55;if(x===40)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();
+      ctx.fillStyle=txt2();ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText('E(s) enerji yüzeyi',W/2,H-6);
+      // markers
+      ctx.fillStyle='rgba(100,116,139,0.5)';ctx.beginPath();ctx.arc(fX,fY,7,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=txt2();ctx.font='9px sans-serif';ctx.textAlign='center';ctx.fillText('s* (serbest)',fX,fY+18);
+      ctx.fillStyle='rgba(236,72,153,0.4)';ctx.beginPath();ctx.arc(cX,cY,7,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=txt2();ctx.font='9px sans-serif';ctx.textAlign='center';ctx.fillText('s** (kenetlenmiş)',cX,cY+18);
+      // ΔW arrow
+      if(Math.abs(bX-(phase==='free'?fX:cX))<12){
+        ctx.strokeStyle='rgba(16,185,129,0.6)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+        ctx.beginPath();ctx.moveTo(fX,fY-5);ctx.lineTo(cX,cY-5);ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle='rgba(16,185,129,0.85)';ctx.font='10px sans-serif';ctx.textAlign='center';
+        ctx.fillText('ΔW ≈ (1/β)·ΔE',fX+28,fY-18);
+      }
+      // ball
+      const tX=phase==='free'?fX:cX,tYY=phase==='free'?fY:cY;
+      bX+=(tX-bX)*0.05;bY+=(tYY-bY)*0.05;
+      ctx.fillStyle='#fff';ctx.strokeStyle=phase==='free'?D.C2.color:'rgba(236,72,153,0.9)';ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(bX,bY,11,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle=phase==='free'?D.C2.color:'rgba(236,72,153,0.9)';ctx.font='600 9px sans-serif';ctx.textAlign='center';
+      ctx.fillText(phase==='free'?'s*':'s**',bX,bY+3);
+      ctx.fillStyle=phase==='free'?D.C2.color:'rgba(236,72,153,0.9)';ctx.font='500 11px sans-serif';ctx.textAlign='left';
+      ctx.fillText(phase==='free'?'Serbest faz aktif':'Kenetlenmiş faz aktif',8,H-5);
+      phaseT++;if(phaseT>100){phase=phase==='free'?'clamped':'free';phaseT=0;}
+      t+=0.02;animId=requestAnimationFrame(draw);
+    }draw();
+  }
+  else if(type==='cha'){
+    function draw(){
+      ctx.clearRect(0,0,W,H);ctx.fillStyle=bg();ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=txt2();ctx.font='11px sans-serif';ctx.textAlign='center';
+      ctx.fillText('CHA — h⁺ (kenetlenmiş) − h⁻ (serbest) = routing + learning',W/2,16);
+      const fa=WORDS.map((_,i)=>0.22+0.5*Math.abs(Math.sin(t*0.8+i)));
+      const ca=WORDS.map((_,i)=>0.3+0.6*Math.abs(Math.sin(t*0.8+i+0.55)));
+      const half=W/2;
+      ctx.fillStyle=txt2();ctx.font='10px sans-serif';ctx.textAlign='center';
+      ctx.fillText('Serbest faz (h⁻)',half/2,34);ctx.fillText('Kenetlenmiş faz (h⁺)',half+half/2,34);
+      for(let i=0;i<N;i++){
+        const xF=22+i*(half-44)/(N-1),xC=half+22+i*(half-44)/(N-1);
+        // free bars
+        ctx.fillStyle=`rgba(100,116,139,${0.18+fa[i]*0.5})`;ctx.fillRect(xF-8,TY-74-fa[i]*48,16,fa[i]*48);
+        ctx.fillStyle='rgba(148,163,184,0.5)';roundRect(ctx,xF-18,TY-16,36,32,5);ctx.fill();
+        ctx.fillStyle=txt1();ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText(WORDS[i],xF,TY+4);
+        // clamped bars
+        ctx.fillStyle=`rgba(249,115,22,${0.18+ca[i]*0.5})`;ctx.fillRect(xC-8,TY-74-ca[i]*48,16,ca[i]*48);
+        ctx.fillStyle='rgba(249,115,22,0.65)';roundRect(ctx,xC-18,TY-16,36,32,5);ctx.fill();
+        ctx.fillStyle='#fff';ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText(WORDS[i],xC,TY+4);
+        // difference connection
+        const diff=ca[i]-fa[i];
+        if(Math.abs(diff)>0.04){
+          ctx.strokeStyle=diff>0?'rgba(16,185,129,0.65)':'rgba(239,68,68,0.55)';
+          ctx.lineWidth=Math.abs(diff)*3;ctx.setLineDash([2,2]);
+          ctx.beginPath();ctx.moveTo(xF,TY-78-fa[i]*48);ctx.lineTo(xC,TY-78-ca[i]*48);ctx.stroke();ctx.setLineDash([]);
+        }
+      }
+      ctx.strokeStyle='rgba(148,163,184,0.3)';ctx.lineWidth=0.5;ctx.setLineDash([4,4]);
+      ctx.beginPath();ctx.moveTo(half,28);ctx.lineTo(half,H-18);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='rgba(16,185,129,.8)';ctx.beginPath();ctx.arc(12,H-11,4,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=txt2();ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillText('h⁺>h⁻ güçlendir',20,H-7);
+      ctx.fillStyle='rgba(239,68,68,.8)';ctx.beginPath();ctx.arc(122,H-11,4,0,Math.PI*2);ctx.fill();
+      ctx.fillText('h⁺<h⁻ zayıflat',130,H-7);
+      t+=0.02;animId=requestAnimationFrame(draw);
+    }draw();
+  }
+}
+
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+
+sel('A1');
+</script>
+</body>
+</html>

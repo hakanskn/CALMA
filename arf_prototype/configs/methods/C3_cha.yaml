@@ -1,0 +1,18 @@
+method: C3_CHA
+description: "Contrastive Hebbian Attention — h+/h- difference drives routing + local update"
+
+model_name: gpt2
+learning_rate: 5.0e-5
+batch_size: 16
+num_epochs: 3
+num_seeds: 5
+checkpoint_every_n_steps: 500
+
+method_params:
+  cha_hebb_lr: 0.01
+  cha_neg_ratio: 1.0
+  cha_ss_target: next_token          # next_token | masked
+  cha_temperature: 1.0
+  cha_clamp_strength: 0.1
+
+expected_extra_params: 0             # standart Q/K/V projeksiyonlarını yeniden kullanır

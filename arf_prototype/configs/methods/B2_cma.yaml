@@ -1,0 +1,20 @@
+method: B2_CMA
+description: "Contrastive Meta-Adaptation — NT-Xent + meta-train across domains"
+
+model_name: gpt2
+learning_rate: 5.0e-5
+batch_size: 16
+num_epochs: 3
+num_seeds: 5
+checkpoint_every_n_steps: 500
+
+method_params:
+  cma_temperature: 0.07
+  cma_inner_lr: 1.0e-4
+  cma_inner_steps: 3
+  cma_outer_lr: 5.0e-5
+  cma_projection_dim: 128
+  cma_use_byol: false
+  cma_adapt_at_eval: true
+
+expected_extra_params: 688256        # projection head 768->768->128

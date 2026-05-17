@@ -1,0 +1,32 @@
+# Core ML
+torch==2.3.0
+transformers==4.41.0
+datasets==2.19.0
+tokenizers==0.19.0
+accelerate==0.30.0
+
+# Experiment tracking
+pyyaml==6.0.1
+omegaconf==2.3.0
+
+# Data / Math
+numpy==1.26.4
+pandas==2.2.2
+scipy==1.13.0
+scikit-learn==1.4.2
+
+# Visualization
+matplotlib==3.9.0
+seaborn==0.13.2
+plotly==5.22.0
+
+# Dashboard
+gradio==4.31.0
+
+# Storage
+sqlalchemy==2.0.30
+
+# Utilities
+tqdm==4.66.4
+rich==13.7.1
+python-dotenv==1.0.1

@@ -1,0 +1,18 @@
+method: A3_RBR
+description: "Resonance-Based Router — ART-style memory bank with vigilance"
+
+model_name: gpt2
+learning_rate: 5.0e-5
+batch_size: 16
+num_epochs: 3
+num_seeds: 5
+checkpoint_every_n_steps: 500
+
+method_params:
+  rbr_vigilance: 0.7
+  rbr_num_slots: 64
+  rbr_slot_dim: 768
+  rbr_beta: 1.0e-6
+  rbr_slot_lr: 0.1
+
+expected_extra_params: 49152        # 64 slot x 768 dim

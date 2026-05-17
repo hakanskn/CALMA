@@ -1,0 +1,19 @@
+method: B3_FWML
+description: "Fast Weight Meta-Learning — LoRA-rank Hebbian fast weights, slow weights frozen"
+
+model_name: gpt2
+learning_rate: 5.0e-5
+batch_size: 16
+num_epochs: 3
+num_seeds: 5
+checkpoint_every_n_steps: 500
+
+method_params:
+  fw_rank: 32
+  fw_hebbian_lr: 0.01
+  fw_decay: 0.99
+  fw_update_rule: hebbian            # hebbian | delta | gradient
+  fw_reset_session: true
+  fw_freeze_slow: true                # ana ağırlıkları dondur
+
+expected_extra_params: 589824        # 12 layer x (768x32 + 32x768)

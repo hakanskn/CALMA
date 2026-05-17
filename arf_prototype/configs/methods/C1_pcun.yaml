@@ -1,0 +1,19 @@
+method: C1_PCUN
+description: "Predictive Coding Unified Network — same signal for routing + local update, no backprop"
+
+model_name: gpt2
+learning_rate: 5.0e-5
+batch_size: 16
+num_epochs: 3
+num_seeds: 5
+checkpoint_every_n_steps: 500
+
+method_params:
+  pc_precision_init: 1.0
+  pc_update_lr: 0.01
+  pc_delta: 1.0e-6
+  pc_num_layers: 12
+  pc_update_freq: 1
+  pc_use_local_only: true            # backprop yerine sadece yerel update
+
+expected_extra_params: 7077888       # 11 inter-layer predictor 768x768
