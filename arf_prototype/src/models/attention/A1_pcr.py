@@ -40,14 +40,18 @@ class PredictiveCodingRouter(BaseAttentionRouter):
 
     # ─────────────────────────────────────────────────────
     def _prediction_error(self, hidden: torch.Tensor) -> torch.Tensor:
+        """Memory-efficient pairwise MSE.
+
+        Naive: ||x_j - pred_i||² için [B,S,S,H] intermediate → O(B·S²·H) bellek.
+        Burada: özdeşlik ||a-b||² = ||a||² - 2a·b + ||b||² ile O(B·S²).
+        S=512, B=16 örneği: 16 MB vs 12 GB.
         """
-        hidden: [B, S, H]
-        Returns: errors [B, S_i, S_j] — token i'nin token j'yi tahmin hatası
-        """
-        pred = self.predictor(hidden)                  # [B, S, H]
-        # Pairwise MSE: ||x_j - pred_i||²
-        diff = hidden.unsqueeze(1) - pred.unsqueeze(2)  # [B, S_i, S_j, H]
-        return (diff * diff).sum(-1)                    # [B, S_i, S_j]
+        pred = self.predictor(hidden)                                  # [B,S,H]
+        x_sq = (hidden * hidden).sum(-1)                                # [B,S_j]
+        p_sq = (pred   * pred  ).sum(-1)                                # [B,S_i]
+        cross = torch.matmul(pred, hidden.transpose(-1, -2))            # [B,S_i,S_j]
+        errors = p_sq.unsqueeze(2) - 2.0 * cross + x_sq.unsqueeze(1)    # [B,S_i,S_j]
+        return errors.clamp(min=0.0)                                    # numerik temizlik
 
     def _compute_attention(
         self,

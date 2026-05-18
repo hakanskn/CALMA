@@ -298,9 +298,15 @@ class PredictiveCodingRouter(BaseRouterAttention):
         self.predictor = nn.Sequential(*layers)
 
     def _prediction_error(self, hidden):
-        pred = self.predictor(hidden)                    # [B,S,H]
-        diff = hidden.unsqueeze(1) - pred.unsqueeze(2)   # [B,S_i,S_j,H]
-        return (diff * diff).sum(-1)                     # [B,S_i,S_j]
+        # Memory-efficient pairwise MSE:
+        # ||x_j - pred_i||^2 = ||pred_i||^2 - 2 * pred_i . x_j + ||x_j||^2
+        # 4D intermediate tensor olusturmaz -> O(B*S^2) bellek, O(B*S^2*H) degil.
+        pred = self.predictor(hidden)                                 # [B,S,H]
+        x_sq = (hidden * hidden).sum(-1)                              # [B,S_j]
+        p_sq = (pred   * pred  ).sum(-1)                              # [B,S_i]
+        cross = torch.matmul(pred, hidden.transpose(-1, -2))          # [B,S_i,S_j]
+        errors = p_sq.unsqueeze(2) - 2.0 * cross + x_sq.unsqueeze(1)  # [B,S_i,S_j]
+        return errors.clamp(min=0.0)                                  # numerik temizlik
 
     def _attend(self, q, k, v, hidden_states, attention_mask):
         errors = self._prediction_error(hidden_states)
