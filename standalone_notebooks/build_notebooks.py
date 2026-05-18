@@ -130,10 +130,13 @@ RUN_CELL = """\
 # Tek satır: model + opsiyonel adapter inşa et, pipeline çalıştır
 model, adapter = build_model_and_adapter(PARAMS)
 run_dir, result = run_pipeline(model, PARAMS, adapter=adapter)
+fm = result["final_metrics"]
 print("\\n" + "=" * 60)
 print(f"RUN DIR: {run_dir}")
-print(f"Final test PPL: {result['final_metrics']['test_ppl']:.4f}")
-print(f"Final test BPC: {result['final_metrics']['test_bpc']:.4f}")
+print(f"Final test PPL:             {fm['test_ppl']:.4f}")
+print(f"Final test BPC (per-char):  {fm['test_bpc']:.4f}")
+print(f"Final test bits-per-token:  {fm['test_bits_per_token']:.4f}")
+print(f"chars/token:                {fm['chars_per_token']:.3f}")
 print(f"Duration: {result['duration_seconds']:.1f}s")
 print("=" * 60)"""
 

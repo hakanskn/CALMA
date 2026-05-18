@@ -89,7 +89,21 @@ class _BlockedTextDataset(Dataset):
             tokenizer.pad_token = tokenizer.eos_token
         texts = [t for t in hf_split[text_column] if isinstance(t, str) and t.strip()]
         joined = "\n\n".join(texts)
-        tokens = tokenizer(joined, return_tensors="pt").input_ids[0]
+
+        # GPT-2 tokenizer'ın model_max_length uyarısını sustur (uzun text → bloklara böleceğiz)
+        import warnings as _warnings
+        _orig_max = tokenizer.model_max_length
+        tokenizer.model_max_length = int(1e12)
+        with _warnings.catch_warnings():
+            _warnings.filterwarnings("ignore", message=".*Token indices sequence length.*")
+            tokens = tokenizer(joined, return_tensors="pt").input_ids[0]
+        tokenizer.model_max_length = _orig_max
+
+        # Karakter/token oranı — gerçek BPC hesaplaması için
+        self.total_chars = len(joined)
+        self.total_tokens = int(tokens.size(0))
+        self.chars_per_token = self.total_chars / max(1, self.total_tokens)
+
         n_blocks = max(1, tokens.size(0) // max_len)
         usable = n_blocks * max_len
         if tokens.size(0) < max_len:
@@ -164,6 +178,8 @@ def load_text_dataloaders(
         batch_size=batch_size, shuffle=True, num_workers=num_workers,
         pin_memory=pin, drop_last=True,
     )
+    # Yardımcı resolver için underlying dataset'i loader'a iliştir
+    train_loader._arf_underlying_ds = train_ds  # type: ignore[attr-defined]
     val_loader = DataLoader(
         _maybe_limit(val_ds, limit_eval_batches),
         batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=pin,
@@ -320,6 +336,9 @@ class StandaloneTrainer:
         if adapter is not None and hasattr(adapter, "set_mask_token_id"):
             adapter.set_mask_token_id(self.tokenizer.eos_token_id)
 
+        # Karakter/token oranı — gerçek BPC için dataset'ten oku
+        self.chars_per_token = _resolve_chars_per_token(self.train_loader)
+
         # Optimizer
         if adapter is not None and getattr(adapter, "owns_optimizer", False):
             self.optimizer = None
@@ -402,6 +421,7 @@ class StandaloneTrainer:
                 "val_loss": val_metrics["loss"],
                 "val_ppl":  val_metrics["perplexity"],
                 "val_bpc":  val_metrics["bits_per_char"],
+                "val_bits_per_token": val_metrics["bits_per_token"],
                 "epoch_time_s": time.perf_counter() - t_ep,
                 "gpu_mem_mb": gpu_peak_mb(),
             }
@@ -423,6 +443,8 @@ class StandaloneTrainer:
                 "test_loss": test_metrics["loss"],
                 "test_ppl":  test_metrics["perplexity"],
                 "test_bpc":  test_metrics["bits_per_char"],
+                "test_bits_per_token": test_metrics["bits_per_token"],
+                "chars_per_token": test_metrics["chars_per_token"],
             },
             "gpu_peak_mb": gpu_peak_mb(),
             "params_total": sum(p.numel() for p in self.model.parameters()),
@@ -431,6 +453,7 @@ class StandaloneTrainer:
         self.log_fn(
             f"✓ Done | test_ppl={test_metrics['perplexity']:.2f} "
             f"test_bpc={test_metrics['bits_per_char']:.4f} "
+            f"(bits_per_token={test_metrics['bits_per_token']:.4f}, chars/tok={test_metrics['chars_per_token']:.2f}) "
             f"duration={duration:.1f}s"
         )
         return result
@@ -496,12 +519,25 @@ class StandaloneTrainer:
             total_loss += float(out.loss.item()) * ntok
             total_tok += ntok
         avg = total_loss / max(1, total_tok)
+        bits_per_token = avg / math.log(2)
+        cpt = getattr(self, "chars_per_token", 4.5)
+        bits_per_char = bits_per_token / max(cpt, 1e-9)
         return {
             "loss": float(avg),
             "perplexity": float(math.exp(min(20.0, avg))),
-            "bits_per_char": float(avg / math.log(2)),
+            "bits_per_token": float(bits_per_token),
+            "bits_per_char": float(bits_per_char),
+            "chars_per_token": float(cpt),
             "num_tokens": int(total_tok),
         }
+
+
+def _resolve_chars_per_token(loader, default: float = 4.5) -> float:
+    """train_loader üzerinden _BlockedTextDataset'in chars_per_token oranını çek."""
+    ds = getattr(loader, "_arf_underlying_ds", None) or loader.dataset
+    while hasattr(ds, "dataset"):  # Subset wrapper'larını geç
+        ds = ds.dataset
+    return float(getattr(ds, "chars_per_token", default))
 
 
 def _split_support_query(batch: Dict[str, torch.Tensor], ratio: float = 0.5):
@@ -573,9 +609,11 @@ def save_results(run_dir: Path, params: Dict[str, Any], result: Dict[str, Any], 
         f"TOTAL PARAMS: {result.get('params_total', 0):,}\n"
         f"TRAINABLE: {result.get('params_trainable', 0):,}\n"
         f"GPU PEAK MB: {result.get('gpu_peak_mb', 0):.0f}\n"
+        f"CHARS/TOKEN: {final.get('chars_per_token', float('nan')):.3f}\n"
         f"TEST_LOSS: {final.get('test_loss', float('nan')):.4f}\n"
         f"TEST_PPL:  {final.get('test_ppl', float('nan')):.4f}\n"
-        f"TEST_BPC:  {final.get('test_bpc', float('nan')):.4f}\n"
+        f"TEST_BITS_PER_TOKEN: {final.get('test_bits_per_token', float('nan')):.4f}\n"
+        f"TEST_BPC (true bits-per-character): {final.get('test_bpc', float('nan')):.4f}\n"
     )
     (run_dir / "final_summary.txt").write_text(summary, encoding="utf-8")
 
@@ -585,7 +623,7 @@ def append_to_index(results_root: str | Path, params: Dict[str, Any], result: Di
     path = Path(results_root) / "_index.csv"
     header = [
         "run_id", "method", "run_name", "dataset", "seed",
-        "test_loss", "test_ppl", "test_bpc",
+        "test_loss", "test_ppl", "test_bpc", "test_bits_per_token", "chars_per_token",
         "duration_s", "params_total", "params_trainable", "gpu_peak_mb",
         "num_epochs", "batch_size", "learning_rate", "max_seq_len",
         "started_at", "run_dir",
@@ -600,6 +638,8 @@ def append_to_index(results_root: str | Path, params: Dict[str, Any], result: Di
         final.get("test_loss", ""),
         final.get("test_ppl", ""),
         final.get("test_bpc", ""),
+        final.get("test_bits_per_token", ""),
+        final.get("chars_per_token", ""),
         result.get("duration_seconds", ""),
         result.get("params_total", ""),
         result.get("params_trainable", ""),
